@@ -1,6 +1,21 @@
+from contextlib import contextmanager
 import psycopg2
 from psycopg2.extras import DictCursor
+import sys, os
 from phenopy.sql.common import *
+
+@contextmanager
+def transaction(conn):
+    conn.set_isolation_level(2)
+    try:
+        yield None
+    except:
+        conn.rollback()
+        raise
+    else:
+        conn.commit()
+    finally:
+        conn.set_isolation_level(0)
 
 # PostgreSQL-specific
 def seq(table):
