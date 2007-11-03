@@ -80,18 +80,24 @@ def where_vals(criteria):
     return []+criteria.value
 
 
-class and_(object):
+class binary_(object):
     def __init__(self, left, right):
         self.left = left 
         self.right = right
 
     @property
     def part(self):
-        return ' and '.join([self.left.part, self.right.part])
+        return (' %s '%(self.op)).join([self.left.part, self.right.part])
 
     @property
     def value(self):
         return [] + self.left.value + self.right.value
+
+class and_(binary_):
+    op = 'and'
+
+class or_(binary_):
+    op = 'or'
 
 class in_(object):
 
@@ -102,6 +108,20 @@ class in_(object):
     @property
     def part(self):
         return '%s in(%s)'%(self.col, ', '.join('%s' for x in self.value))
+
+
+class isnull(object):
+
+    def __init__(self, col):
+        self.col = col 
+    
+    @property
+    def part(self):
+        return '%s is NULL'%self.col
+
+    @property
+    def value(self):
+        return []
 
 class eq(object):
 

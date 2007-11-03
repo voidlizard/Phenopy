@@ -6,7 +6,6 @@ from phenopy.sql.common import *
 
 @contextmanager
 def transaction(conn):
-    conn.set_isolation_level(2)
     try:
         yield None
     except:
@@ -15,7 +14,7 @@ def transaction(conn):
     else:
         conn.commit()
     finally:
-        conn.set_isolation_level(0)
+        pass
 
 # PostgreSQL-specific
 def seq(table):
