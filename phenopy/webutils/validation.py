@@ -144,6 +144,11 @@ class not_empty(condition):
         if not ("" != v and None != v):
             raise self.error()
 
+class is_empty(condition):
+    def __call__(self, v):
+        if "" != v and None != v:
+	    raise self.error()
+
 class not_space(condition):
     @pass_if_empty()
     def __call__(self, v):
