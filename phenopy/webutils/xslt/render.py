@@ -34,7 +34,8 @@ class render(generic_decorator):
                         format=True,
                         root_tag="data",
                         content_type='text/html',
-                        raw=False):
+                        raw=False,
+                        cut_xml_header=False):
 
         def date_time_hook(obj, node):
             fields = ('year', 'month', 'day', 'hour', 'minute', 'second')
@@ -94,6 +95,10 @@ class render(generic_decorator):
             result_dom = xslt.apply_to_doc(dom)
             result_dom = self._postprocess_dom(result_dom)
             results = result_dom.serialize(format=format, encoding=settings.charset)
+
+            if cut_xml_header:
+                results = re.sub(r'(<\?xml.+\?>)','',results,1)
+
             results = re.sub(r'xmlns=""','',results)
 
             time_proc_elapsed = time.time() - time_proc

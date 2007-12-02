@@ -32,6 +32,10 @@ class DAO(object):
         self.row_class = row_class
         self.pkset = pkset(self.metadata)
 
+    def execute(self, query):
+        curs = self.conn.cursor()
+        curs.execute(query)
+
     def delete(self, criteria):
         curs = self.conn.cursor()
         dl = delete(self.metadata.__table__, criteria)
