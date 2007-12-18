@@ -101,6 +101,10 @@ class render(generic_decorator):
 
             results = re.sub(r'xmlns=""','',results)
 
+            print 'AAA'
+            print results
+            print 'AAA'
+
             time_proc_elapsed = time.time() - time_proc
 
             #TODO: cache it!!
