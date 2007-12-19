@@ -95,15 +95,12 @@ class render(generic_decorator):
             result_dom = xslt.apply_to_doc(dom)
             result_dom = self._postprocess_dom(result_dom)
             results = result_dom.serialize(format=format, encoding=settings.charset)
+	    
 
             if cut_xml_header:
                 results = re.sub(r'(<\?xml.+\?>)','',results,1)
 
             results = re.sub(r'xmlns=""','',results)
-
-            print 'AAA'
-            print results
-            print 'AAA'
 
             time_proc_elapsed = time.time() - time_proc
 
@@ -126,6 +123,7 @@ class render(generic_decorator):
                                                                                         time_proc_elapsed,
                                                                                         time_call_elapsed,
                                                                                         time_total)
+	print results
         response = HttpResponse(results,[('Content-Type',content_type)])
         self.func_self.cookies.cookize(response)
         return response
