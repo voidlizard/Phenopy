@@ -79,12 +79,24 @@ class DAO(object):
             return curs.fetchone()[0]
         return None        
 
-    def iter_all(self, criteria=None):
+    def iter_all(self, criteria=None, limit=None, offset=None):
+        if limit or offset:
+            return self.paged_iter(select(self.metadata.__table__, cols(self.metadata), criteria), limit, offset, *where_vals(criteria))
         return self.iter(select(self.metadata.__table__, cols(self.metadata), criteria), *where_vals(criteria))
 
     def iter(self, query, *bindparams):
         curs = self.conn.cursor(cursor_factory=DictCursor)
         curs.execute(str(query), bindparams)
+        for p in curs.fetchall():
+            proj = self.row_class()
+            proj.__dict__.update(dict(p.items()))
+            yield proj
+
+    def paged_iter(self, query, limit, offset, *bindparams):
+        assert((limit is not None and offset is not None) or (limit is None and offset is None))
+        q = str(query) + " limit %s offset %s "
+        curs = self.conn.cursor(cursor_factory=DictCursor)
+        curs.execute(q, bindparams + tuple([limit, offset]))
         for p in curs.fetchall():
             proj = self.row_class()
             proj.__dict__.update(dict(p.items()))
