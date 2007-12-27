@@ -49,7 +49,7 @@ class JSON_Dumper(object):
         m = self._dump_something
         self._acc("  "*level+"{\n")
         for nm,o in val.iteritems():
-            m('"'+nm+'"', o,  level+1)
+            m(nm, o,  level+1)
         self._acc("  "*level+"},\n")
 
     def _dump_item(self, val, level=0):
@@ -71,7 +71,7 @@ class JSON_Dumper(object):
 #        print name, val
 
         if name is not None:
-            self._acc("  "*level + name + ":")
+            self._acc("  "*level + '"'+ name +'"'+ ":")
         else:
             self._acc("  "*level)
 
@@ -129,3 +129,24 @@ if __name__ == "__main__":
 
     print x1.dump_object(Obj())
 
+    class Obj(object):
+        def __init__(self):
+            self.sort = "id"
+            self.totalRecords = 2
+            self.recordsReturned = 2
+            self.startIndex = 0
+            self.dir = "asc"
+            self.records = [
+                { 
+                "firstname":"ssss", 
+                "created":"2007-12-26 16:45:56.806585", 
+                "id":"1", 
+                "secondname":"kkkk", 
+                "active":"True", 
+                "email":"kkk@kkk" 
+                } 
+            ]
+   
+    print
+    print
+    print x1.dump_object(Obj()) 
