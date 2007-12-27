@@ -2,21 +2,38 @@
 import re, StringIO
 
 class JSON_Dumper(object):
-    def __init__(self, root):
+    def __init__(self, root=None):
         self.root = root
         self.io = StringIO.StringIO()
 
     def _acc(self, chunk):
         self.io.write(chunk)
 
-    def dumps(self, **objects):
-        self._acc(self.root + " = {\n")
+    def dump_dict(self, **objects):
+        if self.root:
+            self._acc(self.root + " = {\n")
+
         for k,v in objects.iteritems():
             self._dump_something(k, v)
-        self._acc("\n}")
+
+        if self.root:
+            self._acc("\n}")
         
         self.io.flush()
         return self.io.getvalue()
+
+    def dump_object(self, x):
+        if self.root:
+            self._acc(self.root + " = {\n")
+
+        self._dump_something(None, x, 1)
+
+        if self.root:
+            self._acc("\n}")
+        
+        self.io.flush()
+        return self.io.getvalue()
+
 
     def _dump_sequence(self, val, level=0):
         self._acc(" [\n")
@@ -91,13 +108,24 @@ if __name__ == "__main__":
 
     x = JSON_Dumper('data')
     # dump atoms
-    print x.dumps(str="LALA", str2="BEBE", val1=22, val2=None, val4=-222.44)
+    print x.dump_dict(str="LALA", str2="BEBE", val1=22, val2=None, val4=-222.44)
 
     # dump lists 
-    print x.dumps(val1=["LALA",2,3,4,"BEBE",["QQ", "ZZ"]])
+    print x.dump_dict(val1=["LALA",2,3,4,"BEBE",["QQ", "ZZ"]])
 
     # dump dicts 
-    print x.dumps(val1={"LALA":"QQ","TWO":"2"})
+    print x.dump_dict(val1={"LALA":"QQ","TWO":"2"})
 
     # dump objects 
-    print x.dumps(val1=tc, val2=tc2)
+    print x.dump_dict(val1=tc, val2=tc2)
+
+    x1 = JSON_Dumper()
+    # dump dicts 
+    print x1.dump_dict(val1={"LALA":"QQ","TWO":"2"})
+    
+    class Obj(object):
+        def __init__(self):
+            self.rows = [1,2,3,4,5,6]
+
+    print x1.dump_object(Obj())
+
