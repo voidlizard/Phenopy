@@ -11,13 +11,14 @@ class JSON_Dumper(object):
 
     def dump_dict(self, **objects):
         if self.root:
-            self._acc(self.root + " = {\n")
+            self._acc(self.root + " = ")
+	self._acc("{\n")
 
         for k,v in objects.iteritems():
             self._dump_something(k, v)
 
-        if self.root:
-            self._acc("\n}")
+        #if self.root:
+        self._acc("\n}")
         
         self.io.flush()
         return self.io.getvalue()
