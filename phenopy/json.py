@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import re, StringIO
 
-#wtf?
 class JSON_Dumper(object):
     def __init__(self, root=None):
         self.root = root
