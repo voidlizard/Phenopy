@@ -123,7 +123,6 @@ class render(generic_decorator):
                                                                                         time_proc_elapsed,
                                                                                         time_call_elapsed,
                                                                                         time_total)
-	print results
         response = HttpResponse(results,[('Content-Type',content_type)])
         self.func_self.cookies.cookize(response)
         return response
