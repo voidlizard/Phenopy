@@ -4,7 +4,7 @@ from colubrid import HttpResponse
 from phenopy.decorators import generic_decorator
 from phenopy.webutils.cookies import Cookies
 import os, os.path, sys
-import libxml2, time
+import libxml2, time, datetime
 
 class settings(object):
     pass
@@ -15,8 +15,21 @@ class render(generic_decorator):
                         debug=False,
                         root_tag="data",
                         content_type='text/xml'):
- 
-        dumper = XML_Dumper(root_tag)
+
+        def date_time_hook(obj, node):
+            fields = ('year', 'month', 'day', 'hour', 'minute', 'second')
+            node.newProp('type', 'datetime')
+            for x in fields:
+                if hasattr(obj, x):
+                    node.newProp(x, str(getattr(obj, x)))
+        
+        hooks = {
+            datetime.datetime.__name__ : date_time_hook,
+            datetime.date.__name__     : date_time_hook,
+            datetime.time.__name__     : date_time_hook,
+        }
+
+        dumper = XML_Dumper(root_tag, type_hooks=hooks)
 
         time_call = time.time()
 
