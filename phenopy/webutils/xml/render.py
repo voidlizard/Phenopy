@@ -2,6 +2,7 @@
 from phenopy.xml_tools import XML_Dumper
 from colubrid import HttpResponse
 from phenopy.decorators import generic_decorator
+from phenopy.webutils.cookies import Cookies
 import os, os.path, sys
 import libxml2, time
 
@@ -40,5 +41,6 @@ class render(generic_decorator):
             print "Time profiling. xml dump: %f,  call time %f, total %f"%(time_dump_elapsed,
                                                                            time_call_elapsed,
                                                                            time_dump_elapsed+time_call_elapsed)
+        response = HttpResponse(results,[('Content-Type',content_type)])
         self.func_self.cookies.cookize(response)
-        return HttpResponse(results,[('Content-Type',content_type)])
+        return response
