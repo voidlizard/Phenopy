@@ -18,6 +18,10 @@ class render(generic_decorator):
         dumper = XML_Dumper(root_tag)
 
         time_call = time.time()
+
+        if not hasattr(self.func_self, 'cookies'):
+            self.func_self.cookies = Cookies()
+
         c = self.orig_func(**self.func_kwargs) or {}
         time_call_elapsed = time.time() - time_call
 
@@ -28,7 +32,7 @@ class render(generic_decorator):
         results = dom.serialize(format=True)
 
         if debug:
-            print results 
+            print results
 
         time_proc = time.time()
         
@@ -36,4 +40,5 @@ class render(generic_decorator):
             print "Time profiling. xml dump: %f,  call time %f, total %f"%(time_dump_elapsed,
                                                                            time_call_elapsed,
                                                                            time_dump_elapsed+time_call_elapsed)
+        self.func_self.cookies.cookize(response)
         return HttpResponse(results,[('Content-Type',content_type)])
