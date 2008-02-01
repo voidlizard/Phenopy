@@ -45,12 +45,12 @@ class render(generic_decorator):
         
         results = dom.serialize(format=True)
 
-        if debug:
+        if debug or settings.debug:
             print results
 
         time_proc = time.time()
         
-        if debug:
+        if debug or settings.debug:
             print "Time profiling. xml dump: %f,  call time %f, total %f"%(time_dump_elapsed,
                                                                            time_call_elapsed,
                                                                            time_dump_elapsed+time_call_elapsed)
