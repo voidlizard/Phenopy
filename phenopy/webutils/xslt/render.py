@@ -14,7 +14,8 @@ class settings(object):
     charset='utf-8'
     debug = False   
     dom_postprocessor = None
-    cache = True 
+    cache = True
+    cut_xml_header = False
 
 xslt_cache = {}
 
@@ -97,7 +98,7 @@ class render(generic_decorator):
             results = result_dom.serialize(format=format, encoding=settings.charset)
 	    
 
-            if cut_xml_header:
+            if cut_xml_header or settings.cut_xml_header:
                 results = re.sub(r'(<\?xml.+\?>)','',results,1)
 
             results = re.sub(r'xmlns=""','',results)
