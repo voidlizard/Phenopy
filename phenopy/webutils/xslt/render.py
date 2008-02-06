@@ -125,20 +125,20 @@ class render(generic_decorator):
             summ = time_end - time_start
             print "\n\n"
             print "START MOMENT  - timestamp=%f; from_start=%fs (%d%%)"%(time_start, 0, 0)
-            print "CALL MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_call, time_call-time_start, (time_call-time_start)*100/summ)
-            print "DUMP MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_dump, time_dump-time_start, (time_dump-time_start)*100/summ)
-            print "PROC MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_proc, time_proc-time_start, (time_proc-time_start)*100/summ)
-            print "FINISH MONENT - timestamp=%f; from_start=%fs (%d%%)"%(time_end, time_end-time_start, (time_end-time_start)*100/summ)
+            print "CALL MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_call, time_call-time_start, int((time_call-time_start)*100/summ))
+            print "DUMP MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_dump, time_dump-time_start, int((time_dump-time_start)*100/summ))
+            print "PROC MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_proc, time_proc-time_start, int((time_proc-time_start)*100/summ))
+            print "FINISH MONENT - timestamp=%f; from_start=%fs (%d%%)"%(time_end, time_end-time_start, int((time_end-time_start)*100/summ))
             print "\n"
-            print "PRE-CALL PROCESS  : time taken %fs (%d%% of total)"%(time_call-time_start, (time_call-time_start)*100/summ)
-            print "WAITING PROCESS   : time taken %fs (%d%% of total)"%(time_dump-time_call, (time_dump-time_call)*100/summ)
-            print "DUMPING PROCESS   : time taken %fs (%d%% of total)"%(time_proc-time_dump, (time_proc-time_dump)*100/summ)
-            print "PROCESSING PROCESS: time taken %fs (%d%% of total)"%(time_end-time_proc, (time_end-time_proc)*100/summ)
+            print "PRE-CALL PROCESS  : time taken %fs (%d%% of total)"%(time_call-time_start, int((time_call-time_start)*100/summ))
+            print "WAITING PROCESS   : time taken %fs (%d%% of total)"%(time_dump-time_call, int((time_dump-time_call)*100/summ))
+            print "DUMPING PROCESS   : time taken %fs (%d%% of total)"%(time_proc-time_dump, int((time_proc-time_dump)*100/summ))
+            print "PROCESSING PROCESS: time taken %fs (%d%% of total)"%(time_end-time_proc, int((time_end-time_proc)*100/summ))
             print "\nExpected productivity: %.1d pages/second"%(1/(time_end-time_start))
             print "\n\n"
 
-        if settings.debug:
-                print results
+        #if settings.debug:
+        #     print results
 
         response = HttpResponse(results,[('Content-Type',content_type)])
         self.func_self.cookies.cookize(response)
