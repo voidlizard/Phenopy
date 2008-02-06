@@ -118,7 +118,7 @@ class render(generic_decorator):
 
         time_total = time.time() - time_start
 
-        if settings.debug:
+        if settings.debug and False:
             time_end = time.time()
             # END, at last that is the end
 
