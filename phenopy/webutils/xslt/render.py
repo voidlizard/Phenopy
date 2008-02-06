@@ -12,7 +12,7 @@ import libxslt, libxml2, time, re
 class settings(object):
     searchpath = ''
     charset='utf-8'
-    debug = False   
+    debug = False
     dom_postprocessor = None
     cache = True
     cut_xml_header = False
@@ -26,7 +26,7 @@ class render(generic_decorator):
         klz = self.func_self.__class__
         if hasattr(klz, 'XSLT_RENDER_HINTS'):
             hints_class = getattr(klz, 'XSLT_RENDER_HINTS')
-            hints = hints_class() 
+            hints = hints_class()
             return hints.dom_postprocess(dom, self.func_self)
 
         return dom
@@ -44,7 +44,7 @@ class render(generic_decorator):
             for x in fields:
                 if hasattr(obj, x):
                     node.newProp(x, str(getattr(obj, x)))
-        
+
         hooks = {
             datetime.datetime.__name__ : date_time_hook,
             datetime.date.__name__     : date_time_hook,
@@ -52,32 +52,32 @@ class render(generic_decorator):
         }
 
         time_start = time.time()
- 
+        # START, begin pre-call operations
+
         dumper = XML_Dumper(root_tag=root_tag, type_hooks=hooks)
 
         time_call = time.time()
+        # CALL, get some data
+
         if not hasattr(self.func_self, 'cookies'):
             self.func_self.cookies = Cookies()
 
         c = self.orig_func(**self.func_kwargs) or {}
 
-        time_call_elapsed = time.time() - time_call
-
-        time_proc = 0 #time.time()
+        time_proc = 0
         results = None
         time_dump = 0
-        time_dump_elapsed = 0
-        time_proc_elapsed = 0
         a_point = 0
 
         if template and not raw:
             time_dump = time.time()
+            # DUMP, begin dumping dom
+
             dom =  dumper.to_dom(**c)
-            time_dump_elapsed = time.time() - time_dump
 
             if settings.debug:
                 print dom.serialize(format=True, encoding=settings.charset)
-            
+
             path = settings.searchpath
             path = os.path.abspath(os.path.join(path, template))
 
@@ -92,27 +92,26 @@ class render(generic_decorator):
                 xslt = Xslt(path)
 
             time_proc = time.time()
+            # PROC, begin processing xml
 
             result_dom = xslt.apply_to_doc(dom)
             result_dom = self._postprocess_dom(result_dom)
             results = result_dom.serialize(format=format, encoding=settings.charset)
-	    
+
 
             if cut_xml_header or settings.cut_xml_header:
                 results = re.sub(r'(<\?xml.+\?>)','',results,1)
 
             results = re.sub(r'xmlns=""','',results)
 
-            time_proc_elapsed = time.time() - time_proc
-
             #TODO: cache it!!
-            if not settings.cache:
+            if settings.cache:
                 del xslt
             del dom
             del result_dom
         else:
             results = c
-                
+
 
         if raw:
             results = c['response']
@@ -120,10 +119,27 @@ class render(generic_decorator):
         time_total = time.time() - time_start
 
         if settings.debug:
-            print "Time profiling. xml dump: %f, xslt proc %f, call time %f, total %f"%(time_dump_elapsed,
-                                                                                        time_proc_elapsed,
-                                                                                        time_call_elapsed,
-                                                                                        time_total)
+            time_end = time.time()
+            # END, at last that is the end
+
+            summ = time_end - time_start
+            print "\n\n"
+            print "START MOMENT  - timestamp=%f; from_start=%fs (%d%%)"%(time_start, 0, 0)
+            print "CALL MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_call, time_call-time_start, (time_call-time_start)*100/summ)
+            print "DUMP MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_dump, time_dump-time_start, (time_dump-time_start)*100/summ)
+            print "PROC MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_proc, time_proc-time_start, (time_proc-time_start)*100/summ)
+            print "FINISH MONENT - timestamp=%f; from_start=%fs (%d%%)"%(time_end, time_end-time_start, (time_end-time_start)*100/summ)
+            print "\n"
+            print "PRE-CALL PROCESS  : time taken %fs (%d%% of total)"%(time_call-time_start, (time_call-time_start)*100/summ)
+            print "WAITING PROCESS   : time taken %fs (%d%% of total)"%(time_dump-time_call, (time_dump-time_call)*100/summ)
+            print "DUMPING PROCESS   : time taken %fs (%d%% of total)"%(time_proc-time_dump, (time_proc-time_dump)*100/summ)
+            print "PROCESSING PROCESS: time taken %fs (%d%% of total)"%(time_end-time_proc, (time_end-time_proc)*100/summ)
+            print "\nExpected productivity: %.1d pages/second"%(1/(time_end-time_start))
+            print "\n\n"
+
+        if settings.debug:
+                print results
+
         response = HttpResponse(results,[('Content-Type',content_type)])
         self.func_self.cookies.cookize(response)
         return response
@@ -135,14 +151,14 @@ class html_render(generic_decorator):
                         format=True,
                         debug=False,
                         root_tag="data"):
- 
+
         path = settings.searchpath
         path = os.path.abspath(os.path.join(path, template))
 
         dumper = XML_Dumper(root_tag)
 
         time_call = time.time()
-        self.func_self.cookies = Cookies() 
+        self.func_self.cookies = Cookies()
         c = self.orig_func(**self.func_kwargs) or {}
         time_call_elapsed = time.time() - time_call
 
@@ -154,7 +170,7 @@ class html_render(generic_decorator):
             print dom.serialize(format=True, encoding=settings.charset)
 
         time_proc = time.time()
-        
+
         xslt = Xslt(path)
 
         result_dom = xslt.apply_to_doc(dom)
