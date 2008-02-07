@@ -123,3 +123,15 @@ class DAO(object):
         p.__dict__.update(row.items())
         return p
 
+
+    def count(self, query, *params):
+        qq = '''
+            select count(1) as count from (
+                %s
+            ) as sub1
+        ''' % (query)
+        res = self.getby(qq, *params)
+        if res:
+            return res.count
+        return 0
+

@@ -139,6 +139,10 @@ class trunc(condition):
     def transform(self,v):
         return v[:self.len]
 
+class whatever(condition):
+    def __call__(self, v):
+        pass
+
 class not_empty(condition):
     def __call__(self, v):
         if not ("" != v and None != v):
