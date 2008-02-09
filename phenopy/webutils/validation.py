@@ -140,8 +140,20 @@ class trunc(condition):
         return v[:self.len]
 
 class whatever(condition):
+
+    def __init__(self, default=None):
+        self.default = default
+
     def __call__(self, v):
         pass
+
+    def is_transform(self):
+        return True
+
+    def transform(self,v):
+        if not v:
+            return self.default
+        return v
 
 class not_empty(condition):
     def __call__(self, v):

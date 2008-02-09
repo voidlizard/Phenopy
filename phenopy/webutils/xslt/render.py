@@ -38,112 +38,118 @@ class render(generic_decorator):
                         raw=False,
                         cut_xml_header=False):
 
-        def date_time_hook(obj, node):
-            fields = ('year', 'month', 'day', 'hour', 'minute', 'second')
-            node.newProp('type', 'datetime')
-            for x in fields:
-                if hasattr(obj, x):
-                    node.newProp(x, str(getattr(obj, x)))
+        try:
 
-        hooks = {
-            datetime.datetime.__name__ : date_time_hook,
-            datetime.date.__name__     : date_time_hook,
-            datetime.time.__name__     : date_time_hook,
-        }
+            def date_time_hook(obj, node):
+                fields = ('year', 'month', 'day', 'hour', 'minute', 'second')
+                node.newProp('type', 'datetime')
+                for x in fields:
+                    if hasattr(obj, x):
+                        node.newProp(x, str(getattr(obj, x)))
 
-        time_start = time.time()
-        # START, begin pre-call operations
+            hooks = {
+                datetime.datetime.__name__ : date_time_hook,
+                datetime.date.__name__     : date_time_hook,
+                datetime.time.__name__     : date_time_hook,
+            }
 
-        dumper = XML_Dumper(root_tag=root_tag, type_hooks=hooks)
+            time_start = time.time()
+            # START, begin pre-call operations
 
-        time_call = time.time()
-        # CALL, get some data
+            dumper = XML_Dumper(root_tag=root_tag, type_hooks=hooks)
 
-        if not hasattr(self.func_self, 'cookies'):
-            self.func_self.cookies = Cookies()
+            time_call = time.time()
+            # CALL, get some data
 
-        c = self.orig_func(**self.func_kwargs) or {}
+            if not hasattr(self.func_self, 'cookies'):
+                self.func_self.cookies = Cookies()
 
-        time_proc = 0
-        results = None
-        time_dump = 0
-        a_point = 0
+            c = self.orig_func(**self.func_kwargs) or {}
 
-        if template and not raw:
-            time_dump = time.time()
-            # DUMP, begin dumping dom
+            time_proc = 0
+            results = None
+            time_dump = 0
+            a_point = 0
 
-            dom =  dumper.to_dom(**c)
+            if template and not raw:
+                time_dump = time.time()
+                # DUMP, begin dumping dom
 
-            if settings.debug:
-                print dom.serialize(format=True, encoding=settings.charset)
+                dom =  dumper.to_dom(**c)
 
-            path = settings.searchpath
-            path = os.path.abspath(os.path.join(path, template))
+                if settings.debug:
+                    print dom.serialize(format=True, encoding=settings.charset)
 
-            xslt = None
-            if settings.cache:
-                try:
-                    xslt = xslt_cache[path]
-                except KeyError:
+                path = settings.searchpath
+                path = os.path.abspath(os.path.join(path, template))
+
+                xslt = None
+                if settings.cache:
+                    try:
+                        xslt = xslt_cache[path]
+                    except KeyError:
+                        xslt = Xslt(path)
+                        xslt_cache[path] = xslt
+                else:
                     xslt = Xslt(path)
-                    xslt_cache[path] = xslt
+
+                time_proc = time.time()
+                # PROC, begin processing xml
+
+                result_dom = xslt.apply_to_doc(dom)
+                result_dom = self._postprocess_dom(result_dom)
+                results = result_dom.serialize(format=format, encoding=settings.charset)
+
+
+                if cut_xml_header or settings.cut_xml_header:
+                    results = re.sub(r'(<\?xml.+\?>)','',results,1)
+
+                results = re.sub(r'xmlns=""','',results)
+
+                #TODO: cache it!!
+                if settings.cache:
+                    del xslt
+                del dom
+                del result_dom
             else:
-                xslt = Xslt(path)
-
-            time_proc = time.time()
-            # PROC, begin processing xml
-
-            result_dom = xslt.apply_to_doc(dom)
-            result_dom = self._postprocess_dom(result_dom)
-            results = result_dom.serialize(format=format, encoding=settings.charset)
+                results = c
 
 
-            if cut_xml_header or settings.cut_xml_header:
-                results = re.sub(r'(<\?xml.+\?>)','',results,1)
+            if raw:
+                results = c['response']
 
-            results = re.sub(r'xmlns=""','',results)
+            time_total = time.time() - time_start
 
-            #TODO: cache it!!
-            if settings.cache:
-                del xslt
-            del dom
-            del result_dom
-        else:
-            results = c
+            if settings.debug and False:
+                time_end = time.time()
+                # END, at last that is the end
 
+                summ = time_end - time_start
+                print "\n\n"
+                print "START MOMENT  - timestamp=%f; from_start=%fs (%d%%)"%(time_start, 0, 0)
+                print "CALL MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_call, time_call-time_start, int((time_call-time_start)*100/summ))
+                print "DUMP MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_dump, time_dump-time_start, int((time_dump-time_start)*100/summ))
+                print "PROC MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_proc, time_proc-time_start, int((time_proc-time_start)*100/summ))
+                print "FINISH MONENT - timestamp=%f; from_start=%fs (%d%%)"%(time_end, time_end-time_start, int((time_end-time_start)*100/summ))
+                print "\n"
+                print "PRE-CALL PROCESS  : time taken %fs (%d%% of total)"%(time_call-time_start, int((time_call-time_start)*100/summ))
+                print "WAITING PROCESS   : time taken %fs (%d%% of total)"%(time_dump-time_call, int((time_dump-time_call)*100/summ))
+                print "DUMPING PROCESS   : time taken %fs (%d%% of total)"%(time_proc-time_dump, int((time_proc-time_dump)*100/summ))
+                print "PROCESSING PROCESS: time taken %fs (%d%% of total)"%(time_end-time_proc, int((time_end-time_proc)*100/summ))
+                print "\nExpected productivity: %.1d pages/second"%(1/(time_end-time_start))
+                print "\n\n"
 
-        if raw:
-            results = c['response']
+            #if settings.debug:
+            #     print results
 
-        time_total = time.time() - time_start
+            response = HttpResponse(results,[('Content-Type',content_type)])
+            self.func_self.cookies.cookize(response)
+            return response
 
-        if settings.debug and False:
-            time_end = time.time()
-            # END, at last that is the end
-
-            summ = time_end - time_start
-            print "\n\n"
-            print "START MOMENT  - timestamp=%f; from_start=%fs (%d%%)"%(time_start, 0, 0)
-            print "CALL MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_call, time_call-time_start, int((time_call-time_start)*100/summ))
-            print "DUMP MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_dump, time_dump-time_start, int((time_dump-time_start)*100/summ))
-            print "PROC MOMENT   - timestamp=%f; from_start=%fs (%d%%)"%(time_proc, time_proc-time_start, int((time_proc-time_start)*100/summ))
-            print "FINISH MONENT - timestamp=%f; from_start=%fs (%d%%)"%(time_end, time_end-time_start, int((time_end-time_start)*100/summ))
-            print "\n"
-            print "PRE-CALL PROCESS  : time taken %fs (%d%% of total)"%(time_call-time_start, int((time_call-time_start)*100/summ))
-            print "WAITING PROCESS   : time taken %fs (%d%% of total)"%(time_dump-time_call, int((time_dump-time_call)*100/summ))
-            print "DUMPING PROCESS   : time taken %fs (%d%% of total)"%(time_proc-time_dump, int((time_proc-time_dump)*100/summ))
-            print "PROCESSING PROCESS: time taken %fs (%d%% of total)"%(time_end-time_proc, int((time_end-time_proc)*100/summ))
-            print "\nExpected productivity: %.1d pages/second"%(1/(time_end-time_start))
-            print "\n\n"
-
-        #if settings.debug:
-        #     print results
-
-        response = HttpResponse(results,[('Content-Type',content_type)])
-        self.func_self.cookies.cookize(response)
-        return response
-
+        except:
+            if settings.debug:
+                print 'Wooops'
+            raise
 
 
 class html_render(generic_decorator):
