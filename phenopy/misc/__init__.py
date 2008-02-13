@@ -29,16 +29,13 @@ def guard(object):
 
  
 
-def fancy_time_delta(d1, d2):
 
-    class fancy_time_delta(object):
-        def __init__(self, **kw):
-            self.__dict__.update(kw)
-
-    delta =  d2 - d1
-    hours = delta.seconds / 3600
-    minutes = (delta.seconds % 3600 ) / 60
-
-    return fancy_time_delta(days=delta.days, hours=hours, minutes=minutes)
+class fancy_time_delta(object):
+    def __init__(self, n1, n2):
+        self.__dict__.update(kw)
+        delta =  d2 - d1
+        self.days = delta.days
+        self.hours = delta.seconds / 3600
+        self.minutes = (delta.seconds % 3600 ) / 60
 
 
