@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re, libxml2
 import string, operator, array
+import inspect
 
 _names = {}
 
@@ -79,11 +80,12 @@ class XML_Dumper(object):
         cdata = self._xml_doc.newCDataBlock(object.content, len(object.content))
         parent_node.addChild(cdata)
 
-    def _dump_object(self, object = None, parent_node = None):
-        parent_node.newProp('class', object.__class__.__name__)
+    def _dump_object(self, obj = None, parent_node = None):
+        parent_node.newProp('class', obj.__class__.__name__)
         ds = self._dump_something
-        for k, v in object.__dict__.iteritems():
-            ds(k, v, {}, parent_node)
+        attr = obj.__dict__.keys() + [ x[0] for x in inspect.getmembers(obj.__class__) if type(x[1]) == property]
+        for k in attr:
+            ds(k, getattr(obj,k), {}, parent_node)
 
     def _dump_objects(self, parent_node = None, **kw):
         ds = self._dump_something
