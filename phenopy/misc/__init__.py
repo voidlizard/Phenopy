@@ -32,8 +32,7 @@ def guard(object):
 
 class fancy_time_delta(object):
     def __init__(self, n1, n2):
-        self.__dict__.update(kw)
-        delta =  d2 - d1
+        delta =  n2 - n1
         self.days = delta.days
         self.hours = delta.seconds / 3600
         self.minutes = (delta.seconds % 3600 ) / 60
