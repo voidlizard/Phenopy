@@ -1,90 +1,47 @@
 # -*- coding: utf-8 -*-
-import re, StringIO
+
+def dump_atom( a ):
+    if type(a) == int or type(a) == long:
+        return str(a)
+    elif type(a) == bool:
+        return str(a).lower()
+    elif a is None:
+        return 'null'
+    else: # type(a) == str or type(a) == unicode:
+        return "'" + str(a).replace("\\","\\\\").replace("'","\\'") + "'"
+
+def dump_element( el ):
+    if hasattr(el, "__dict__"):
+        return dump_object(el)
+    elif type(el) == dict:
+        return dump_dict(el)
+    elif hasattr(el, "__iter__"):
+        return dump_sequence(el)
+    return dump_atom(el)
+
+def dump_object( obj ):
+    return dump_dict(obj.__dict__)
+
+def dump_sequence( seq ):
+    return '[' + ', '.join( dump_element(x) for x in seq ) + ']'
+
+def dump_dict( d ):
+    return '{' + ', '.join( ("'%s' : %s"%(k, dump_element(v)) for k,v in d.iteritems()) ) + '}'
+
+def dump_assignment( left, right ):
+    if left is not None:
+        return left + ' = ' + dump_element( right )
+    return dump_element( right )
 
 class JSON_Dumper(object):
     def __init__(self, root=None):
         self.root = root
-        self.io = StringIO.StringIO()
-
-    def _acc(self, chunk):
-        self.io.write(chunk)
 
     def dump_dict(self, **objects):
-        if self.root:
-            self._acc(self.root + " = ")
-	self._acc("{\n")
-
-        for k,v in objects.iteritems():
-            self._dump_something(k, v)
-
-        #if self.root:
-        self._acc("\n}")
-        
-        self.io.flush()
-        return self.io.getvalue()
+        return dump_assignment( self.root, objects )
 
     def dump_object(self, x):
-        if self.root:
-            self._acc(self.root + " = {\n")
-
-        self._dump_something(None, x, 1)
-
-        if self.root:
-            self._acc("\n}")
-        
-        self.io.flush()
-        return self.io.getvalue()
-
-
-    def _dump_sequence(self, val, level=0):
-        self._acc(" [\n")
-        for x in val:
-            self._dump_something(None, x, level+1)
-        self._acc("  "*level+"],\n")
-
-    def _dump_object(self, val, level):
-        for k, v in val.__dict__.iteritems():
-            self._dump_something(k, v, level+1)
-
-    def _dump_dict(self, val, level=0):
-        m = self._dump_something
-        self._acc("  "*level+"{\n")
-        for nm,o in val.iteritems():
-            m(nm, o,  level+1)
-        self._acc("  "*level+"},\n")
-
-    def _dump_item(self, val, level=0):
-        if not hasattr(val,"__dict__"):
-            if val is None:
-                self._acc('null,\n')
-            else:
-                self._acc('"%s",\n'%str(val))
-        else:
-            self._acc("{\n")
-            self._dump_object(val, level+1)
-            self._acc("  "*(level-1)+"},\n")
-
-    def _dump_something(self, name, val, level=0):
-
-        tp = type(val)
-        func = self._dump_item
- 
-#        print name, val
-
-        if name is not None:
-            self._acc("  "*level + '"'+ name +'"'+ ":")
-        else:
-            self._acc("  "*level)
-
-        if val.__class__.__base__ == list:
-            func = self._dump_sequence
-        elif tp == dict:
-            func = self._dump_dict
-        elif tp == tuple or tp == list or tp == tuple:
-            func = self._dump_sequence
-
-        #self._acc(name)
-        func(val, level=level+1)
+        return dump_assignment( self.root, x)
 
 if __name__ == "__main__":
     import datetime
