@@ -120,6 +120,22 @@ class is_int(condition):
     def transform(self,v):
         return int(v)
 
+
+class is_float(condition):
+    @pass_if_empty()
+    def __call__(self, v):
+        try:
+            float(v)
+        except:
+            raise self.error()
+
+    def is_transform(self):
+        return True
+
+    @pass_val_if_empty()
+    def transform(self,v):
+        return float(v)
+
 class trunc(condition):
 
     def __init__(self, len):
