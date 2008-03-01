@@ -6,7 +6,7 @@ class CDATA(object):
 
 def markdown_cdata_format(text):
     cdata = CDATA()
-    cdata.content =  Markdown(text, encoding='utf-8', safe_mode = True).toString().encode('utf-8')
+    cdata.content =  Markdown(text, safe_mode = True).convert().encode('utf-8')
     return cdata
 
 def quote_markdown(text):
