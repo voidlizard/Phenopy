@@ -1,6 +1,6 @@
 from kjbuckets import kjGraph
-from itertools import *
-from operator import *
+from itertools import groupby
+from operator import attrgetter
 
 class transition(object):
     def __init__(self, a, b, name=None, role=None, priority=1):

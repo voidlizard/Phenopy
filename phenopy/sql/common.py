@@ -126,7 +126,7 @@ class isnull(object):
 class eq(object):
 
     def __init__(self, col, val):
-        self.col = col 
+        self.col = col
         self.value = [val]
     
     @property
