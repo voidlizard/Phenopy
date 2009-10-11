@@ -50,7 +50,9 @@ def %s(%s):
             exec_dict[orig_func.__name__] = orig_func
             exec_dict['orig_func'] = orig_func
             exec_dict['caller'] = self
-            
+            exec_dict['attr_args'] = attr_args        
+            exec_dict['attr_kwargs'] = attr_kwargs     
+
             exec wrapper_func_str in exec_dict
             wrapper_func = locals()[orig_func.__name__]
             wrapper_func.__doc__ = orig_func.__doc__
